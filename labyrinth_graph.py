@@ -10,6 +10,7 @@ from solid.solidpython import OpenSCADObject
 from labyrinth_level import LabyrinthLevel
 from labyrinth_cube import LabyrinthCube
 
+
 class LGraphNode():
 
     def __init__(self, location, connections):
@@ -34,7 +35,7 @@ class LGraphNode():
         nodes = []
         for i in range(6):
             offset = np.zeros(3)
-            offset[i%3] = 1 if i<3 else -1
+            offset[i % 3] = 1 if i < 3 else -1
             closeNode = LGraphNode(self.location + offset, self._connections)
             if(closeNode.isValid):
                 nodes.append(closeNode)
@@ -86,25 +87,27 @@ class LabyrinthGraph():
 
     def getLabyrinthCube(self, wallThickness, pathThickness, spacing):
         levels = []
-        for k in range(self.connections.shape[2]):              #z
+        for k in range(self.connections.shape[2]):  # z
 
             isRoom = np.zeros(self.connections.shape[:2])
-            
-            for i in range(self.connections.shape[0]):          #x
-                for j in range(self.connections.shape[1]):      #y
-                    isRoom[i,j] = len(self.getNode(np.array([i,j,k])).neighbors) > 0
-            
-            level = LabyrinthLevel( wallThickness, pathThickness,
-                                    self.connections[:,:,k,:], isRoom)
+
+            for i in range(self.connections.shape[0]):  # x
+                for j in range(self.connections.shape[1]):  # y
+                    isRoom[i, j] = len(self.getNode(
+                        np.array([i, j, k])).neighbors) > 0
+
+            level = LabyrinthLevel(wallThickness, pathThickness,
+                                   self.connections[:, :, k, :], isRoom)
 
             levels.append(level)
+
         return LabyrinthCube(levels, spacing)
 
-    def addEdge(self, node1 : LGraphNode, node2 : LGraphNode):
+    def addEdge(self, node1: LGraphNode, node2: LGraphNode):
         diff = node2.location-node1.location
         abssum = np.sum(np.abs(diff))
         if(abssum == 1):
-            if  (diff[0] == 1):
+            if (diff[0] == 1):
                 self.connections[tuple([*node1.location, 0])] = True
             elif(diff[0] == -1):
                 self.connections[tuple([*node2.location, 0])] = True
@@ -118,16 +121,16 @@ class LabyrinthGraph():
                 self.connections[tuple([*node1.location, 2])] = True
             return True
         else:
-            return False            
+            return False
 
-    def cutList(self, list, maxLength : int):
+    def cutList(self, list, maxLength: int):
         return list[:max(len(list), maxLength)]
 
     def keepDirection(self, list, prevNode):
         pass
 
-    def prioritizeXY(self, nodes : List[LGraphNode], prevNode : LGraphNode):
-        def priority(node : LGraphNode):
+    def prioritizeXY(self, nodes: List[LGraphNode], prevNode: LGraphNode):
+        def priority(node: LGraphNode):
             diff = node.location - prevNode.location
             if(np.sum(np.abs(diff[:2])) > 0):
                 return 0
@@ -135,7 +138,7 @@ class LabyrinthGraph():
                 return 1
         return sorted(nodes, key=priority)
 
-    def randomShuffleList(self, nodes : List, randomState):
+    def randomShuffleList(self, nodes: List, randomState):
         adjNodes = np.array(nodes)
         perm = randomState.permutation(len(adjNodes))
         permAdjNodes = adjNodes[perm]
@@ -151,9 +154,9 @@ class LabyrinthGraph():
             currentNode = stack.pop()
             print(currentNode.location)
             adjNodes = currentNode.closeNodes
-            
+
             modifiedList = self.cutList(
-                self.randomShuffleList(adjNodes, rs), rs.random_sample([0,0,1]))
+                self.randomShuffleList(adjNodes, rs), rs.random_sample([0, 0, 1]))
 
             for node in modifiedList:
                 if not visited[tuple(node.location)]:
@@ -161,12 +164,10 @@ class LabyrinthGraph():
                     visited[tuple(node.location)] = True
                     stack.append(node)
 
-    
+    def findPath(self, startNode: LGraphNode, goalNode: LGraphNode):
+        prev = np.ones((*self.connections.shape[:3], 3), dtype=int)*-10000
 
-    def findPath(self, startNode : LGraphNode, goalNode : LGraphNode):
-        prev = np.ones((*self.connections.shape[:3],3), dtype=int)*-10000
-
-        def retrievePath(location : np.ndarray):
+        def retrievePath(location: np.ndarray):
             path = [location]
             currentLocation = location
             while True:
@@ -181,7 +182,7 @@ class LabyrinthGraph():
         prev[tuple(startNode.location)] = startNode.location
         while queue:
             print(len(queue))
-            currNode : LGraphNode = queue.popleft()
+            currNode: LGraphNode = queue.popleft()
             for node in currNode.neighbors:
                 if prev[tuple(node.location)][0] < 0:
                     queue.append(node)
@@ -189,8 +190,6 @@ class LabyrinthGraph():
                     if goalNode == node:
                         path = retrievePath(goalNode.location)
                         return path
-
-            
 
 
 if __name__ == "__main__":
@@ -200,45 +199,45 @@ if __name__ == "__main__":
     def testAddEdge():
         print("test add edge")
         lgraph = LabyrinthGraph(4)
-        node = lgraph.getNode([1,1,1])
-        above = lgraph.getNode([1,1,2])
-        below = lgraph.getNode([1,1,0])
-        xp = lgraph.getNode([2,1,1])
-        xn = lgraph.getNode([0,1,1])
-        yp = lgraph.getNode([1,2,1])
-        yn = lgraph.getNode([1,0,1])
-        
+        node = lgraph.getNode([1, 1, 1])
+        above = lgraph.getNode([1, 1, 2])
+        below = lgraph.getNode([1, 1, 0])
+        xp = lgraph.getNode([2, 1, 1])
+        xn = lgraph.getNode([0, 1, 1])
+        yp = lgraph.getNode([1, 2, 1])
+        yn = lgraph.getNode([1, 0, 1])
+
         to_test = [above, below, xp, xn, yp, yn]
         for testNode in to_test:
             lgraph.connections[:] = np.zeros(
-            (4, 4, 4, 3), dtype=bool)
+                (4, 4, 4, 3), dtype=bool)
             success = lgraph.addEdge(testNode, node)
-            if not success: print("failed")
-            if not testNode.isValid: print("node not valid")
+            if not success:
+                print("failed")
+            if not testNode.isValid:
+                print("node not valid")
             print(node in testNode.neighbors)
             print(testNode in node.neighbors)
 
     def testGetNeighbors():
         print("test get neighbors")
         lgraph = LabyrinthGraph(4)
-        lgraph.connections[1,1,1,0] = True
-        lgraph.connections[1,1,2,2] = True
-        lgraph.connections[1,0,1,1] = True
-        print(lgraph.getNode([1,1,1]).neighbors)
+        lgraph.connections[1, 1, 1, 0] = True
+        lgraph.connections[1, 1, 2, 2] = True
+        lgraph.connections[1, 0, 1, 1] = True
+        print(lgraph.getNode([1, 1, 1]).neighbors)
 
     def testCreateCube():
         lgraph = LabyrinthGraph(4)
-        lgraph.setRandomTree(123)
-        lcube = lgraph.getLabyrinthCube(3,14,35)
+        lgraph.setRandomTree(3)
+        lcube = lgraph.getLabyrinthCube(3, 14, 35)
         path = lgraph.findPath(lgraph.topCornerNode, lgraph.bottomCornerNode)
-        
+
         scube = lcube.getCubeSolid()
         spath = lcube.getPathSolid(path)
 
-        scad_render_to_file(scube+ spath, "auto3dlab.scad")
+        scad_render_to_file(scube + spath, "auto3dlab.scad")
 
     testAddEdge()
     testGetNeighbors()
     testCreateCube()
-
-    

@@ -12,6 +12,14 @@ class LabyrinthCube():
         self.levels = levels
         self.spacing = spacing
 
+    def getRoomCorner(self):
+        pass
+
+    def getRoomCenter(self, i, j, k):
+        levelCenter = self.levels[k].get3dRoomCenter(i,j)
+        zOffset = [0,0,k*self.spacing]
+        return levelCenter + zOffset
+
     def getCubeSolid(self):
         solidCube = union()(
             [translate([0, 0, i*self.spacing])(self.levels[i].getSolidLevel())
@@ -35,8 +43,14 @@ class LabyrinthCube():
             diffdim = np.argmax(np.abs(p1p2))
             size = np.ones(3)*2
             size[diffdim] = np.linalg.norm(p1p2)
-            extrusion.add(translate((p1+p2)/2)(cube(size, center=True)))
+            extrusion.add(
+                translate((p1+p2)/2)(cube(size, center=True))
+            )
         return extrusion
+
+    def createScadFile(self, name):
+        scad_render_to_file(self.getCubeSolid(), f"{name}.scad")
+
 
 
 if __name__ == "__main__":

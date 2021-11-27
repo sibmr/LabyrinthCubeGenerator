@@ -158,6 +158,9 @@ class LabyrinthLevel():
 
         return level
 
+    def createScadFile(self, name):
+        scad_render_to_file(self.getSolidLevel(), f"{name}.scad")
+
 
 if __name__ == "__main__":
 
