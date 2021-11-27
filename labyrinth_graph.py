@@ -1,8 +1,11 @@
 from typing import List
 import numpy as np
-from numpy.core.fromnumeric import _prod_dispatcher
 from solid import scad_render_to_file
-from numpy.random import default_rng
+from collections import deque
+from solid import objects
+
+from solid.objects import union
+from solid.solidpython import OpenSCADObject
 
 from labyrinth_level import LabyrinthLevel
 from labyrinth_cube import LabyrinthCube
@@ -117,24 +120,77 @@ class LabyrinthGraph():
         else:
             return False            
 
+    def cutList(self, list, maxLength : int):
+        return list[:max(len(list), maxLength)]
+
+    def keepDirection(self, list, prevNode):
+        pass
+
+    def prioritizeXY(self, nodes : List[LGraphNode], prevNode : LGraphNode):
+        def priority(node : LGraphNode):
+            diff = node.location - prevNode.location
+            if(np.sum(np.abs(diff[:2])) > 0):
+                return 0
+            else:
+                return 1
+        return sorted(nodes, key=priority)
+
+    def randomShuffleList(self, nodes : List, randomState):
+        adjNodes = np.array(nodes)
+        perm = randomState.permutation(len(adjNodes))
+        permAdjNodes = adjNodes[perm]
+        return permAdjNodes
 
     def setRandomTree(self, seed):
         rs = np.random.RandomState(seed=seed)
         visited = np.zeros(self.connections.shape[:3], dtype=bool)
         startNode = self.topCornerNode
+        visited[tuple(startNode.location)] = True
         stack = [startNode]
         while stack:
             currentNode = stack.pop()
             print(currentNode.location)
-            adjNodes = np.array(currentNode.closeNodes)
-            perm = rs.permutation(len(adjNodes))
-            print(perm)
-            permAdjNodes = adjNodes[perm]
-            for node in permAdjNodes:
+            adjNodes = currentNode.closeNodes
+            
+            modifiedList = self.cutList(
+                self.randomShuffleList(adjNodes, rs), rs.random_sample([0,0,1]))
+
+            for node in modifiedList:
                 if not visited[tuple(node.location)]:
                     self.addEdge(currentNode, node)
                     visited[tuple(node.location)] = True
                     stack.append(node)
+
+    
+
+    def findPath(self, startNode : LGraphNode, goalNode : LGraphNode):
+        prev = np.ones((*self.connections.shape[:3],3), dtype=int)*-10000
+
+        def retrievePath(location : np.ndarray):
+            path = [location]
+            currentLocation = location
+            while True:
+                nextLocation = prev[tuple(currentLocation)]
+                path.append(nextLocation)
+                currentLocation = nextLocation
+                if(self.getNode(nextLocation) == startNode):
+                    return list(reversed(path))
+
+        queue = deque()
+        queue.append(startNode)
+        prev[tuple(startNode.location)] = startNode.location
+        while queue:
+            print(len(queue))
+            currNode : LGraphNode = queue.popleft()
+            for node in currNode.neighbors:
+                if prev[tuple(node.location)][0] < 0:
+                    queue.append(node)
+                    prev[tuple(node.location)] = currNode.location
+                    if goalNode == node:
+                        path = retrievePath(goalNode.location)
+                        return path
+
+            
 
 
 if __name__ == "__main__":
@@ -171,12 +227,15 @@ if __name__ == "__main__":
         print(lgraph.getNode([1,1,1]).neighbors)
 
     def testCreateCube():
-        lgraph = LabyrinthGraph(6)
-        lgraph.setRandomTree(102030123)
-        print("done")
-        lcube = lgraph.getLabyrinthCube(2,8,20)
-        print("done")
-        scad_render_to_file(lcube.getCubeSolid(), "auto3dlab.scad")
+        lgraph = LabyrinthGraph(4)
+        lgraph.setRandomTree(123)
+        lcube = lgraph.getLabyrinthCube(3,14,35)
+        path = lgraph.findPath(lgraph.topCornerNode, lgraph.bottomCornerNode)
+        
+        scube = lcube.getCubeSolid()
+        spath = lcube.getPathSolid(path)
+
+        scad_render_to_file(scube+ spath, "auto3dlab.scad")
 
     testAddEdge()
     testGetNeighbors()

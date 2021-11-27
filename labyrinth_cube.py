@@ -1,6 +1,7 @@
 from typing import List
 from solid import *
 from solid.utils import *
+import numpy as np
 
 from labyrinth_level import LabyrinthLevel
 
@@ -18,6 +19,24 @@ class LabyrinthCube():
         )
 
         return solidCube
+
+    def getPathSolid(self, indexPath):
+        spatialPath = []
+        for location in indexPath:
+            levelSpatialLocation = self.levels[location[2]].get3dRoomCenter(*location[:2])
+            zOffset = [0,0,location[2]*self.spacing]
+            cubeSpatialLocation = levelSpatialLocation+zOffset
+            spatialPath.append(np.array(cubeSpatialLocation))
+        extrusion = union()
+        for i in range(1, len(spatialPath)):
+            p1 = spatialPath[i-1]
+            p2 = spatialPath[i]
+            p1p2 = p2 - p1
+            diffdim = np.argmax(np.abs(p1p2))
+            size = np.ones(3)*2
+            size[diffdim] = np.linalg.norm(p1p2)
+            extrusion.add(translate((p1+p2)/2)(cube(size, center=True)))
+        return extrusion
 
 
 if __name__ == "__main__":

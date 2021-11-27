@@ -53,6 +53,22 @@ class LabyrinthLevel():
         else:
             return None
 
+    def get3DRoomCorner(self, i: int, j: int) -> Optional[np.ndarray]:
+        if i < self.gridSize and j < self.gridSize:
+            flatRoomCorner =  np.array([*self._getRoomCorner(i, j),0])
+            spatialOffset = [self.wallThickness, self.wallThickness, self.floorThickness]
+            return flatRoomCorner + spatialOffset
+        else:
+            return None
+
+    def get3dRoomCenter(self, i: int, j: int) -> Optional[np.ndarray]:
+        roomCorner = self.get3DRoomCorner(i, j)
+        if roomCorner is not None:
+            centerOffset = np.ones(3)*(self.pathThickness/2)
+            return roomCorner + centerOffset
+        else:
+            return None
+
     def createLevelBase(self) -> OpenSCADObject:
         base = linear_extrude(self.levelSizeZ)(
             square(self.levelSizeXY)
