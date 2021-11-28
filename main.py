@@ -9,18 +9,18 @@ def exportStl(name: str):
 if __name__ == "__main__":
     lgraph = LabyrinthGraph(4)
     lgraph.setRandomTree(6)
-    lcube = lgraph.getLabyrinthCube(2, 14, 17)
-    lcase = LabyrinthCasing(lcube, 2, 0.3)
+    lcube = lgraph.getLabyrinthCube(2, 14, 35)
+    lcase = LabyrinthCasing(lcube, 2, 0.4)
     path = lgraph.findPath(lgraph.topCornerNode, lgraph.bottomCornerNode)
 
-    name = "casing1"
+    name = "output/casing1"
     lcase.createScadFile(name)
     exportStl(name)
     for i, level in enumerate(lcube.levels):
-        name = f"level{i}"
+        name = f"output/level{i}"
         level.createScadFile(name)
         exportStl(name)
 
 
-    scad_render_to_file(lcase.getCubeInCasingSolid(), "auto3dlab.scad")
-    #scad_render_to_file(lcube.getCubeSolid()+lcube.getPathSolid(path), "auto3dlab.scad")
+    #scad_render_to_file(lcase.getCubeInCasingSolid(), "output/auto3dlab.scad")
+    scad_render_to_file(lcube.getCubeSolid()+lcube.getPathSolid(path), "output/auto3dlab.scad")
