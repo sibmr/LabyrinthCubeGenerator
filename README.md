@@ -8,5 +8,9 @@ Multiple Parameters can be adusted:
 * Number of Cells n: n*n\*n cube
 * Casing Thickness and Tolerance
 
+## Dependecies
+* python: solidpython, numpy
+* openscad for STL file generation    
+
 ## Usage
       python3 main.py
