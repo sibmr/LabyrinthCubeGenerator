@@ -16,25 +16,25 @@ class LabyrinthCasing():
         self.tolerance: float = tolerance
 
     @property
-    def cubeOffset(self):
+    def cubeOffset(self) -> np.ndarray:
         cubeOffsetSize = np.ones(3)*(self.casingThickness+self.tolerance)
         return cubeOffsetSize
 
     @property
-    def labyrinthCubeSize(self):
+    def labyrinthCubeSize(self) -> np.ndarray:
         cubeSizeXY = self.lc.levels[0].levelSizeXY
         cubeSizeZ = self.lc.spacing*len(self.lc.levels)
         cubeSize = np.array([cubeSizeXY, cubeSizeXY, cubeSizeZ])
         return cubeSize
 
     @property
-    def casingSize(self):
+    def casingSize(self) -> np.ndarray:
         return [*2*self.cubeOffset[:2], self.cubeOffset[2]] + self.labyrinthCubeSize
 
-    def getRoomCenter(self, i, j, k):
+    def getRoomCenter(self, i, j, k) -> np.ndarray:
         return self.lc.getRoomCenter(i,j,k) + self.cubeOffset
 
-    def getCasingSolid(self):
+    def getCasingSolid(self) -> OpenSCADObject:
 
         assert self.casingThickness > 0, "Casing Thickness needs to be positive"
 
@@ -51,7 +51,7 @@ class LabyrinthCasing():
         ])
         return solidCasing
 
-    def getWindowSolid(self, i : int, j: int, k: int, dir: Literal["xp, xn, yp, yn"]):
+    def getWindowSolid(self, i : int, j: int, k: int, dir: Literal["xp, xn, yp, yn"]) -> OpenSCADObject:
         pathSize = self.lc.levels[0].pathThickness
         center = self.getRoomCenter(i,j,k)
         if dir=="xn":
@@ -77,7 +77,7 @@ class LabyrinthCasing():
         return wcube
         
 
-    def getCubeInCasingSolid(self):
+    def getCubeInCasingSolid(self) -> OpenSCADObject:
         casing = self.getCasingSolid()
         lcube = translate(np.ones(3)*(self.casingThickness+self.tolerance))(
             self.lc.getCubeSolid()

@@ -9,8 +9,9 @@ def exportStl(name: str):
 if __name__ == "__main__":
     lgraph = LabyrinthGraph(4)
     lgraph.setRandomTree(6)
-    lcube = lgraph.getLabyrinthCube(2, 14, 35)
-    lcase = LabyrinthCasing(lcube, 2, 0.4)
+    lcube = lgraph.getLabyrinthCube(2, 14, 17)
+    lcube.addAllWindows()
+    lcase = LabyrinthCasing(lcube, 1.2, 0.6)
     path = lgraph.findPath(lgraph.topCornerNode, lgraph.bottomCornerNode)
 
     name = "output/casing1"

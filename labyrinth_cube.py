@@ -13,14 +13,18 @@ class LabyrinthCube():
         self.spacing = spacing
 
     def getRoomCorner(self):
-        pass
+        raise NotImplementedError()
 
-    def getRoomCenter(self, i, j, k):
+    def getRoomCenter(self, i, j, k) -> np.ndarray:
         levelCenter = self.levels[k].get3dRoomCenter(i,j)
         zOffset = [0,0,k*self.spacing]
         return levelCenter + zOffset
 
-    def getCubeSolid(self):
+    def addAllWindows(self):
+        for level in self.levels:
+            level.hasWindows = True
+
+    def getCubeSolid(self) -> OpenSCADObject:
         solidCube = union()(
             [translate([0, 0, i*self.spacing])(self.levels[i].getSolidLevel())
                 for i in range(len(self.levels))]
@@ -28,7 +32,7 @@ class LabyrinthCube():
 
         return solidCube
 
-    def getPathSolid(self, indexPath):
+    def getPathSolid(self, indexPath) -> OpenSCADObject:
         spatialPath = []
         for location in indexPath:
             levelSpatialLocation = self.levels[location[2]].get3dRoomCenter(*location[:2])

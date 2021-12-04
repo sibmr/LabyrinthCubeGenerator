@@ -1,3 +1,4 @@
+from typing import Literal
 import numpy as np
 from solid import *
 from solid.utils import *
@@ -10,11 +11,12 @@ class ConnectionDirection():
 
 
 class LabyrinthLevel():
-    def __init__(self, wallThickness, pathThickness, isConnected, isRoom):
+    def __init__(self, wallThickness, pathThickness, isConnected, isRoom, hasWindows=False):
         self.wallThickness = wallThickness
         self.pathThickness = pathThickness
         self.isConnected = isConnected
         self.isRoom = isRoom
+        self.hasWindows = hasWindows
 
     @property
     def gridSize(self) -> int:
@@ -26,6 +28,7 @@ class LabyrinthLevel():
 
     @property
     def levelSizeXY(self) -> float:
+        # length of all rooms in a row and outer wall thickness
         return self.gridSize*self.roomSize + self.wallThickness
 
     @property
@@ -44,7 +47,7 @@ class LabyrinthLevel():
     def connectionSizeY(self) -> np.ndarray:
         return np.array([self.pathThickness, self.wallThickness])
 
-    def _getRoomCorner(self, i: int, j: int):
+    def _getRoomCorner(self, i: int, j: int) -> np.ndarray:
         return np.array([i*self.roomSize, j*self.roomSize])
 
     def getRoomCorner(self, i: int, j: int) -> Optional[np.ndarray]:
@@ -93,7 +96,53 @@ class LabyrinthLevel():
 
         return solidRooms
 
-    def getXYConnection(self, i, j, type: Union["X", "Y"]):
+    def getWindowSolid(self, i : int, j: int, dir: Literal["xp, xn, yp, yn"]) -> OpenSCADObject:
+        pathSize = self.pathThickness
+        center = self.get3dRoomCenter(i,j)
+        levelMaxXY = self.levelSizeXY
+        if dir=="xn":
+            outside = np.array([0,center[1],center[2]])
+            distToOutside = np.linalg.norm(outside-center)
+            size = [distToOutside,pathSize/3,pathSize/3]
+            rotation = np.array([45,0,0])
+        elif dir=="xp":
+            outside = np.array([levelMaxXY,center[1],center[2]])
+            distToOutside = np.linalg.norm(outside-center)
+            size = [distToOutside,pathSize/3,pathSize/3]
+            rotation = np.array([45,0,0])
+        elif dir=="yn":
+            outside = np.array([center[0],0,center[2]])
+            distToOutside = np.linalg.norm(outside-center)
+            size = [pathSize/3,distToOutside,pathSize/3]
+            rotation = np.array([0,45,0])
+        elif dir=="yp":
+            outside = np.array([center[0],levelMaxXY,center[2]])
+            distToOutside = np.linalg.norm(outside-center)
+            size = [pathSize/3,distToOutside,pathSize/3]
+            rotation = np.array([0,45,0])
+
+        wcube = translate((center+outside)/2)(
+            rotate(a=rotation)(
+                cube(size, center=True)
+            )
+        )
+        return wcube
+
+    def getAllWindows(self) -> OpenSCADObject:
+        windows = []
+        for i in range(self.gridSize):
+            for j in range(self.gridSize):
+                if i == 0:
+                    windows.append(self.getWindowSolid(i,j,"xn"))
+                if j == 0:
+                    windows.append(self.getWindowSolid(i,j,"yn"))
+                if i == self.gridSize-1:
+                    windows.append(self.getWindowSolid(i,j,"xp"))
+                if j == self.gridSize-1:
+                    windows.append(self.getWindowSolid(i,j,"yp"))
+        return union()(windows)
+
+    def getXYConnection(self, i, j, type: Literal["X", "Y"]) -> OpenSCADObject:
         if type == "X":
             neighbor_room_corner = self.getRoomCorner(i+1, j)
             offset = [self.wallThickness, 0]
@@ -148,11 +197,16 @@ class LabyrinthLevel():
         rooms = self.createLevelRooms()
         connections = self.createRoomConnections()
 
+        windows = OpenSCADObject("empty", {})
+        if self.hasWindows:
+            windows = self.getAllWindows()
+
         level = difference()([
             base,
             union()([
                 rooms,
-                connections
+                connections,
+                windows
             ])
         ])
 
