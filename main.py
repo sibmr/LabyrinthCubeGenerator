@@ -1,5 +1,5 @@
-import argparse, os
-from solid.objects import cube
+import argparse, os, json
+import numpy as np
 
 from solid.solidpython import scad_render_to_file
 from labyrinth_casing import LabyrinthCasing
@@ -9,7 +9,7 @@ from subprocess import run
 
 
 def exportStl(name: str):
-    run(["openscad", "-o", f"{name}.stl", f"{name}.scad"])
+    run(["openscad", "-q", "--o", f"{name}.stl", f"{name}.scad"])
 
 
 def check_path(path_name: str) -> str:
@@ -30,6 +30,10 @@ def check_config(config_name: str) -> dict:
         raise AttributeError(f'the config named "{config_name}" does not exist')
 
 
+def str2int(string: str) -> int:
+    return int(string)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser("Generate a Labyrinth Cube")
@@ -38,8 +42,13 @@ if __name__ == "__main__":
     parser.add_argument("p", help="path for .scad and .stl output", type=check_path)
 
     parser.add_argument(
+        "-s", dest="set_seed", help="seed for random generation", type=str2int
+    )
+    parser.set_defaults(set_seed=-1)
+
+    parser.add_argument(
         "--vp",
-        help="output .scad file for labyrinth path visualization",
+        help="output .scad file for labyrinth casing visualization",
         dest="path_vis",
         action="store_true",
     )
@@ -55,15 +64,38 @@ if __name__ == "__main__":
         dest="stl",
         action="store_true",
     )
+    parser.add_argument(
+        "--random",
+        help="change random generation seed to random value and print it",
+        dest="random",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no-windows",
+        help="add windows to all floors",
+        dest="windows",
+        action="store_false",
+    )
     parser.set_defaults(path_vis=False)
     parser.set_defaults(case_vis=False)
     parser.set_defaults(stl=False)
+    parser.set_defaults(random=False)
+    parser.set_defaults(windows=True)
 
     args = parser.parse_args()
-    print(args)
 
     config = args.c["config"]
     config_name = args.c["config_name"]
+
+    if args.random:
+        new_seed = np.random.randint(10000000)
+        config["seed"] = new_seed
+
+    if args.set_seed >= 0:
+        new_seed = args.set_seed
+        config["seed"] = new_seed
+
+    print("config = " + json.dumps(config, sort_keys=True, indent=4))
 
     lgraph = LabyrinthGraph(config["cubeSize"])
     lgraph.setRandomTree(config["seed"])
@@ -73,8 +105,10 @@ if __name__ == "__main__":
         config["levelPathThickness"],
         config["levelSpacing"],
     )
-    print(lcube.levels[0].levelSizeXY)
-    lcube.addAllWindows()
+    print(f"Level width: {lcube.levels[0].levelSizeXY} mm")
+    
+    if args.windows:
+        lcube.addAllWindows()
 
     lcase = LabyrinthCasing(
         lcube, config["casingWallThickness"], config["casingTolerance"]

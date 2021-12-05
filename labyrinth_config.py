@@ -30,3 +30,10 @@ class LabyrinthConfig:
         "levelWallThickness": 1.6,
         "levelPathThickness": 14.5,
     }
+
+    config04 = {
+        **default_config,
+        "levelWallThickness": 1.6,
+        "levelPathThickness": 14.5,
+        "cubeSize": 9
+    }

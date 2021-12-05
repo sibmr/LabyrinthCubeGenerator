@@ -2,10 +2,6 @@ from typing import List
 import numpy as np
 from solid import scad_render_to_file
 from collections import deque
-from solid import objects
-
-from solid.objects import union
-from solid.solidpython import OpenSCADObject
 
 from labyrinth_level import LabyrinthLevel
 from labyrinth_cube import LabyrinthCube

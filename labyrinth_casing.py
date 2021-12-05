@@ -1,6 +1,5 @@
 from typing import Literal
 from solid import *
-import solid
 from solid.utils import *
 import numpy as np
 

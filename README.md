@@ -1,16 +1,38 @@
 # Labyrinth Cube Generator
+This generates a 3D model of a labyrinth cube.  
+It consists of multiple floors that are stacked to form the complete labyrinth.  
 
-This generates a multi-level labyrinth that is occluded by a casing that the levels are placed into.  
-Any spherical object can be placed at the top corner. The Goal is to navigate the sphere through the labyrinth to the bottom corner by using gravity.   
 Multiple Parameters can be adusted:  
-* Sphere Size
-* Wall and Floor Thickness
+* Cell Size
 * Number of Cells n: n*n\*n cube
+* Wall and Floor Thickness
 * Casing Thickness and Tolerance
 
+Example 4x4x4 and 9x9x9 labyrinths with the solution path visualized:
+
+<img src="img/path_4x4.png" alt="drawing" height="400"/>
+<img src="img/path_9x9.png" alt="drawing" height="400"/>
+
+
 ## Dependecies
-* python: solidpython, numpy
+* python: solidpython, numpy, json
 * openscad for STL file generation    
 
 ## Usage
-      python3 main.py
+Print help:  
+
+      python3 -m main -h
+
+Generate .stl files:
+
+      python3 -m main config01 ./output01 --stl
+
+Generate .scad files for labyrinth inspection (view using openscad):
+
+Path from corner to corner:
+
+      python3 -m main config01 ./output01 --vp 
+      
+Fit in casing:
+      
+      python3 -m main config01 ./output01 --vc
