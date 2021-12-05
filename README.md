@@ -10,9 +10,10 @@ Multiple Parameters can be adusted:
 
 Example 4x4x4 and 9x9x9 labyrinths with the solution path visualized:
 
+<p float="left">
 <img src="img/path_4x4.png" alt="drawing" height="400"/>
 <img src="img/path_9x9.png" alt="drawing" height="400"/>
-
+</p>
 
 ## Dependecies
 * python: solidpython, numpy, json
