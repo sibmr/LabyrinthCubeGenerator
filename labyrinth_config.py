@@ -8,6 +8,7 @@ class LabyrinthConfig:
         "levelSpacing": 17,
         "casingWallThickness": 1.2,
         "casingTolerance": 0.6,
+        "viewSpacing" : 35
     }
 
     config01 = {
@@ -25,8 +26,7 @@ class LabyrinthConfig:
     }
 
     config03 = {
-        **default_config,
-        "seed": 18,
+        **config01,
         "levelWallThickness": 1.6,
         "levelPathThickness": 14.5,
     }
