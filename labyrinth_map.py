@@ -14,7 +14,7 @@ class LabyrinthMap:
     @property
     def dim_2d_size(self):
         gridSize = self.lcube.levels[0].gridSize
-        dim_2d_size = int(np.sqrt(gridSize))
+        dim_2d_size = int(np.ceil(np.sqrt(gridSize)))
         return dim_2d_size
 
     @property
@@ -34,9 +34,10 @@ class LabyrinthMap:
         layout = union()
         for i in range(self.dim_2d_size):
             for j in range(self.dim_2d_size):
+                index = i + j * self.dim_2d_size
                 layout.add(
                     translate(i * np.array([self.step_2d, 0]) - j * np.array([0, self.step_2d]) + [0,(self.dim_2d_size-1)*self.step_2d])(
-                        solid_levels[i + j * self.dim_2d_size]
+                        solid_levels[index] if index<len(solid_levels) else union()
                     )
                 )
         return layout
@@ -49,8 +50,8 @@ class LabyrinthMap:
         width = 2000
         height = 2000
         
-        xy_center = np.ones(2)*((self.overall_width)/self.dim_2d_size)
-        cam_z = self.overall_width*2.5
+        xy_center = np.ones(2)*(self.overall_width/2)
+        cam_z = self.overall_width*2.6
         ex, ey, ez = np.array([*xy_center, cam_z], dtype=np.int)
         cx, cy, cz = np.array([*xy_center, 0], dtype=np.int)
         print(f"--camera=eye_{ex},{ey},{ez},center_{cx},{cy},{cz}",)
