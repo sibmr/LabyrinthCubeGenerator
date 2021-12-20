@@ -15,6 +15,13 @@ Example 4x4x4 and 9x9x9 labyrinths with the solution path visualized:
 <img src="img/path_9x9.png" alt="drawing" height="400"/>
 </p>
 
+Floorplan for the 4x4 Labyrinth.   
+Automatically generated using `python3 -m main config03 ./output03 --map`.  
+Can be printed to facilitate solving labyrinth.
+
+<img src="img/map.png" alt="drawing" height="400"/>
+
+
 ## Dependecies
 * python: solidpython, numpy, json
 * openscad for STL file generation    

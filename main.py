@@ -5,6 +5,7 @@ from solid.solidpython import scad_render_to_file
 from labyrinth_casing import LabyrinthCasing
 from labyrinth_graph import LabyrinthGraph
 from labyrinth_config import LabyrinthConfig
+from labyrinth_map import LabyrinthMap
 from subprocess import run
 
 
@@ -76,11 +77,18 @@ if __name__ == "__main__":
         dest="windows",
         action="store_false",
     )
+    parser.add_argument(
+        "--map",
+        help="create a map of the levels",
+        dest="map",
+        action="store_true",
+    )
     parser.set_defaults(path_vis=False)
     parser.set_defaults(case_vis=False)
     parser.set_defaults(stl=False)
     parser.set_defaults(random=False)
     parser.set_defaults(windows=True)
+    parser.set_defaults(windows=False)
 
     args = parser.parse_args()
 
@@ -128,9 +136,15 @@ if __name__ == "__main__":
         lcube.spacing = config["levelSpacing"]
         vis_output_path = os.path.join(args.p, "labyrinth_case_visualization.scad")
         scad_render_to_file(lcase.getCubeInCasingSolid(), vis_output_path)
+    
     if args.path_vis:
         lcube.spacing = config["viewSpacing"]
         vis_output_path = os.path.join(args.p, "labyrinth_path_visualization.scad")
         scad_render_to_file(
             lcube.getCubeSolid() + lcube.getPathSolid(path), vis_output_path
         )
+
+    if args.map:
+        lmap = LabyrinthMap(lcube=lcube)
+        lmap.render_png(args.p)
+    
