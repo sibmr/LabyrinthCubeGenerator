@@ -12,6 +12,7 @@ class LabyrinthCasing:
         self.lc: LabyrinthCube = lcube
         self.casingThickness: float = casingThickness
         self.tolerance: float = tolerance
+        self.bonusHeight : float = 5
 
     @property
     def cubeOffset(self) -> np.ndarray:
@@ -29,6 +30,10 @@ class LabyrinthCasing:
     def casingSize(self) -> np.ndarray:
         return [*2 * self.cubeOffset[:2], self.cubeOffset[2]] + self.labyrinthCubeSize
 
+    @property
+    def casingCenter(self) -> np.ndarray:
+        return self.casingSize / 2
+
     def getRoomCenter(self, i, j, k) -> np.ndarray:
         return self.lc.getRoomCenter(i, j, k) + self.cubeOffset
 
@@ -40,13 +45,50 @@ class LabyrinthCasing:
 
         holeOffsetSize = np.ones(3) * (self.casingThickness)
 
-        outCube = cube(self.casingSize, center=False)
+        outCube = cube(self.casingSize + [0,0,self.bonusHeight], center=False)
         holeCube = cube(
-            self.labyrinthCubeSize + np.ones(3) * 2 * self.tolerance, center=False
+            self.labyrinthCubeSize + np.ones(3) * 2 * self.tolerance + [0,0,self.bonusHeight], center=False
         )
 
         solidCasing = difference()([outCube, translate(holeOffsetSize)(holeCube)])
         return solidCasing
+
+    def getReducedCasingSolid(self) -> OpenSCADObject:
+        simpleCasing = self.getCasingSolid()
+        
+        casingSizeXY = self.casingSize[0]
+        punchoutVertXY = (1/8) * casingSizeXY
+        punchoutRotXY = (1/2) * casingSizeXY
+        
+        wallPunchoutVertX = translate(self.casingCenter+[0,0,self.casingThickness+self.bonusHeight/2])(
+            cube([punchoutVertXY, casingSizeXY, self.casingSize[2]+self.bonusHeight], center=True)
+            )
+
+        wallPunchoutVertY = translate(self.casingCenter+[0,0,self.casingThickness+self.bonusHeight/2])(
+            cube([casingSizeXY, punchoutVertXY, self.casingSize[2]+self.bonusHeight], center=True)
+            )
+
+        wallPunchoutRotX = translate(self.casingCenter+[0,0,self.casingThickness])(
+                rotate([0,45,0])(
+                    cube([punchoutRotXY, casingSizeXY, punchoutRotXY], center=True)
+                )
+            )
+
+        wallPunchoutRotY = translate(self.casingCenter+[0,0,self.casingThickness])(
+                rotate([45,0,0])(
+                    cube([casingSizeXY, punchoutRotXY, punchoutRotXY], center=True)   
+                )
+            )
+
+        reducedCasing = difference()(
+            simpleCasing,
+            wallPunchoutVertX,
+            wallPunchoutVertY,
+            wallPunchoutRotX,
+            wallPunchoutRotY
+        )
+
+        return reducedCasing
 
     def getWindowSolid(
         self, i: int, j: int, k: int, dir: Literal["xp, xn, yp, yn"]
@@ -74,7 +116,7 @@ class LabyrinthCasing:
         return wcube
 
     def getCubeInCasingSolid(self) -> OpenSCADObject:
-        casing = self.getCasingSolid()
+        casing = self.getReducedCasingSolid()
         lcube = translate(np.ones(3) * (self.casingThickness + self.tolerance))(
             self.lc.getCubeSolid()
         )
@@ -91,4 +133,4 @@ if __name__ == "__main__":
     lc = LabyrinthCube([ll, ll, ll, ll], 17)
     lcc = LabyrinthCasing(lc, 3, 0.5)
 
-    scad_render_to_file(lcc.getCubeInCasingSolid(), "auto3dlab.scad")
+    scad_render_to_file(lcc.getReducedCasingSolid(), "auto3dlab.scad")
