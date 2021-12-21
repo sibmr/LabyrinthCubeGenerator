@@ -88,7 +88,7 @@ if __name__ == "__main__":
     parser.set_defaults(stl=False)
     parser.set_defaults(random=False)
     parser.set_defaults(windows=True)
-    parser.set_defaults(windows=False)
+    parser.set_defaults(maps=False)
 
     args = parser.parse_args()
 
