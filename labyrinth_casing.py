@@ -12,7 +12,7 @@ class LabyrinthCasing:
         self.lc: LabyrinthCube = lcube
         self.casingThickness: float = casingThickness
         self.tolerance: float = tolerance
-        self.bonusHeight : float = 5
+        self.bonusHeight : float = 3
 
     @property
     def cubeOffset(self) -> np.ndarray:
@@ -123,7 +123,7 @@ class LabyrinthCasing:
         return casing + lcube
 
     def createScadFile(self, name):
-        scad_render_to_file(self.getCasingSolid(), f"{name}.scad")
+        scad_render_to_file(self.getReducedCasingSolid(), f"{name}.scad")
 
 
 if __name__ == "__main__":

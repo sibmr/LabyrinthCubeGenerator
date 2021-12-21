@@ -29,6 +29,8 @@ class LabyrinthConfig:
         **config01,
         "levelWallThickness": 1.6,
         "levelPathThickness": 14.5,
+        "levelSpacing": 16.3,
+        "casingTolerance": 0.3,
     }
 
     config04 = {
